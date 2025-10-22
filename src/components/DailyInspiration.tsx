@@ -1,86 +1,62 @@
-import { motion } from "framer-motion";
-import { BookOpen, Lightbulb, Hand } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-
-const inspirationCards = [
-  {
-    icon: BookOpen,
-    title: "Daily Reflection",
-    description: "Pause and ponder your day.",
-    bgColor: "bg-mint/40",
-    delay: 0.2,
-  },
-  {
-    icon: Lightbulb,
-    title: "Mood Tips",
-    description: "Small habits for a calmer mind.",
-    bgColor: "bg-pink-light/60",
-    delay: 0.4,
-  },
-  {
-    icon: Hand,
-    title: "Gratitude Prompts",
-    description: "Find joy in the little things.",
-    bgColor: "bg-accent/40",
-    delay: 0.6,
-  },
-];
+import { BookOpen, Lightbulb, Sprout } from "lucide-react";
+import { motion } from "framer-motion";
 
 const DailyInspiration = () => {
+  const cards = [
+    {
+      icon: BookOpen,
+      title: "Daily Reflection",
+      description: "Pause and ponder your day.",
+      color: "bg-mint-light/40",
+    },
+    {
+      icon: Lightbulb,
+      title: "Mood Tips",
+      description: "Small habits for a calmer mind.",
+      color: "bg-pink-light/40",
+    },
+    {
+      icon: Sprout,
+      title: "Gratitude Prompts",
+      description: "Find joy in the little things.",
+      color: "bg-accent/40",
+    },
+  ];
+
   return (
-    <section className="container mx-auto px-4 py-16 md:py-24">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="space-y-12"
-      >
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center md:text-left">
+    <section className="py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-2xl md:text-3xl font-bold mb-8 text-burgundy"
+        >
           Daily Inspiration
-        </h2>
+        </motion.h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {inspirationCards.map((card, index) => (
+          {cards.map((card, index) => (
             <motion.div
-              key={card.title}
+              key={index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: card.delay }}
-              whileHover={{ y: -8, transition: { duration: 0.2 } }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="border-none shadow-lg hover:shadow-xl transition-all overflow-hidden bg-card">
-                <CardContent className="p-8 space-y-6">
-                  {/* Icon Section */}
-                  <div className={`${card.bgColor} rounded-2xl p-8 flex items-center justify-center`}>
-                    <card.icon className="w-16 h-16 text-foreground stroke-[1.5]" />
-                  </div>
-
-                  {/* Text Section */}
-                  <div className="space-y-2 text-center">
-                    <h3 className="text-xl font-bold text-foreground">
-                      {card.title}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {card.description}
-                    </p>
-                  </div>
+              <Card className="border-0 shadow-md hover:shadow-lg transition-shadow overflow-hidden rounded-2xl">
+                <div className={`h-40 ${card.color} flex items-center justify-center`}>
+                  <card.icon className="w-14 h-14 text-burgundy" strokeWidth={1.5} />
+                </div>
+                <CardContent className="p-6 text-center bg-background">
+                  <h3 className="text-lg font-semibold mb-2 text-burgundy">{card.title}</h3>
+                  <p className="text-olive text-sm">{card.description}</p>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </div>
-      </motion.div>
-
-      {/* Decorative Elements */}
-      <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        whileInView={{ scale: 1, opacity: 0.1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1 }}
-        className="absolute right-0 top-1/2 w-64 h-64 bg-secondary rounded-full blur-3xl -z-10"
-      />
+      </div>
     </section>
   );
 };
