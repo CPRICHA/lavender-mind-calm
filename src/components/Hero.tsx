@@ -57,13 +57,15 @@ const Hero = () => {
                 Start Writing
               </Button>
             </Link>
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-full px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Track Emotions
-            </Button>
+            <Link to="/mood-tracker">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-full px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                Track Emotions
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </div>

@@ -33,9 +33,11 @@ const Navbar = () => {
                 Journal
               </Button>
             </Link>
-            <Button variant="ghost" className="rounded-full">
-              Mood Tracker
-            </Button>
+            <Link to="/mood-tracker">
+              <Button variant="ghost" className="rounded-full">
+                Mood Tracker
+              </Button>
+            </Link>
             <Button variant="ghost" className="rounded-full">
               About
             </Button>
