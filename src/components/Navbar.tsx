@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Brain, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const navItems = ["Home", "Journal", "Mood Tracker", "About"];
@@ -22,15 +23,22 @@ const Navbar = () => {
 
           {/* Nav Items */}
           <div className="hidden md:flex items-center gap-2">
-            {navItems.map((item, index) => (
-              <Button
-                key={item}
-                variant={index === 0 ? "secondary" : "ghost"}
-                className="rounded-full"
-              >
-                {item}
+            <Link to="/">
+              <Button variant="secondary" className="rounded-full">
+                Home
               </Button>
-            ))}
+            </Link>
+            <Link to="/journal">
+              <Button variant="ghost" className="rounded-full">
+                Journal
+              </Button>
+            </Link>
+            <Button variant="ghost" className="rounded-full">
+              Mood Tracker
+            </Button>
+            <Button variant="ghost" className="rounded-full">
+              About
+            </Button>
           </div>
 
           {/* User Icon */}

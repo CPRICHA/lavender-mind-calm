@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -47,13 +48,15 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-burgundy/80 to-burgundy hover:from-burgundy hover:to-burgundy/90 text-white rounded-full px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
-            >
-              <PenLine className="w-5 h-5 mr-2" />
-              Start Writing
-            </Button>
+            <Link to="/journal">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-burgundy/80 to-burgundy hover:from-burgundy hover:to-burgundy/90 text-white rounded-full px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
+              >
+                <PenLine className="w-5 h-5 mr-2" />
+                Start Writing
+              </Button>
+            </Link>
             <Button
               size="lg"
               className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white rounded-full px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all"
