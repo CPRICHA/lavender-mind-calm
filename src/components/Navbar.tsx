@@ -38,9 +38,11 @@ const Navbar = () => {
                 Mood Tracker
               </Button>
             </Link>
-            <Button variant="ghost" className="rounded-full text-burgundy hover:bg-pink-light/30">
-              About
-            </Button>
+            <Link to="/about">
+              <Button variant="ghost" className="rounded-full text-burgundy hover:bg-pink-light/30">
+                About
+              </Button>
+            </Link>
           </div>
 
           {/* User Icon */}
