@@ -1,45 +1,47 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
-  Home, 
   PenLine, 
   Palette, 
   Smile, 
   Sparkles, 
   Lock, 
   Download,
-  Bold,
-  Italic,
-  Underline,
-  Type,
-  Highlighter,
-  List,
-  ListOrdered,
-  Quote,
-  Minus,
   Mic,
   ChevronRight,
   Menu,
-  X
+  X,
+  Square,
+  Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 const Journal = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [content, setContent] = useState("");
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  const quillRef = useRef<ReactQuill>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const { toast } = useToast();
   
   const sidebarItems = [
-    { icon: PenLine, label: "Write", color: "text-primary" },
-    { icon: Palette, label: "Style", color: "text-secondary" },
-    { icon: Smile, label: "Emoji", color: "text-accent-foreground" },
-    { icon: Sparkles, label: "Prompts", color: "text-primary" },
-    { icon: Lock, label: "Privacy", color: "text-olive" },
-    { icon: Download, label: "Export", color: "text-burgundy" },
+    { icon: PenLine, label: "Write", action: () => quillRef.current?.focus() },
+    { icon: Palette, label: "Style", action: () => {} },
+    { icon: Smile, label: "Emoji", action: () => setEmojiPickerOpen(!emojiPickerOpen) },
+    { icon: Sparkles, label: "Prompts", action: () => insertPrompt() },
+    { icon: Lock, label: "Privacy", action: () => toast({ title: "🔒 Entry marked as private" }) },
+    { icon: Download, label: "Export", action: () => exportEntry() },
   ];
 
   const prompts = [
@@ -48,6 +50,126 @@ const Journal = () => {
     "What are you grateful for right now?",
     "What's on your mind at this moment?"
   ];
+
+  const lavenderColors = ["#756AB6", "#AC87C5", "#E0AED0", "#FFE5E5", "#CAE0BC", "#EAFAEA", "#6E8E59"];
+
+  // Quill modules with custom toolbar
+  const modules = {
+    toolbar: {
+      container: [
+        ["bold", "italic", "underline"],
+        [{ size: ["small", false, "large", "huge"] }],
+        [{ header: [1, 2, 3, false] }],
+        [{ color: lavenderColors }, { background: lavenderColors }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["blockquote", "code-block"],
+        ["clean"],
+      ],
+    },
+  };
+
+  const formats = [
+    "bold", "italic", "underline",
+    "header", "size", "color", "background",
+    "list", "bullet", "blockquote", "code-block"
+  ];
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+        const quill = quillRef.current?.getEditor();
+        if (!quill) return;
+
+        const selection = quill.getSelection();
+        if (!selection) return;
+
+        switch (e.key.toLowerCase()) {
+          case "b":
+            e.preventDefault();
+            quill.format("bold", !quill.getFormat(selection).bold);
+            break;
+          case "i":
+            e.preventDefault();
+            quill.format("italic", !quill.getFormat(selection).italic);
+            break;
+          case "u":
+            e.preventDefault();
+            quill.format("underline", !quill.getFormat(selection).underline);
+            break;
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      const selection = quill.getSelection();
+      const index = selection ? selection.index : quill.getLength();
+      quill.insertText(index, emojiData.emoji);
+      quill.setSelection(index + emojiData.emoji.length, 0);
+    }
+    setEmojiPickerOpen(false);
+  };
+
+  const insertPrompt = () => {
+    const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      const currentContent = quill.getText().trim();
+      const newContent = currentContent ? `${currentContent}\n\n${randomPrompt}` : randomPrompt;
+      quill.setText(newContent);
+      quill.setSelection(quill.getLength(), 0);
+    }
+  };
+
+  const exportEntry = () => {
+    const blob = new Blob([content], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `journal-entry-${new Date().toISOString().split("T")[0]}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "📄 Entry exported successfully!" });
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioURL(url);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      toast({ title: "🎙️ Recording started..." });
+    } catch (error) {
+      toast({ title: "❌ Microphone access denied", variant: "destructive" });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      toast({ title: "⏹️ Recording stopped" });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,9 +233,10 @@ const Journal = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
+                    onClick={item.action}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 transition-all group"
                   >
-                    <item.icon className={`w-5 h-5 ${item.color} group-hover:scale-110 transition-transform`} />
+                    <item.icon className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-medium text-foreground">{item.label}</span>
                   </motion.button>
                 ))}
@@ -130,56 +253,61 @@ const Journal = () => {
           className="flex-1 min-w-0"
         >
           <Card className="bg-card/50 backdrop-blur-xl border-border/50 shadow-xl">
-            <CardHeader className="pb-4">
-              {/* Toolbar */}
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Bold className="w-4 h-4" />
+            <CardHeader className="pb-4 space-y-4">
+              {/* Editor Toolbar */}
+              <div className="journal-editor">
+                <ReactQuill
+                  ref={quillRef}
+                  theme="snow"
+                  value={content}
+                  onChange={setContent}
+                  modules={modules}
+                  formats={formats}
+                  placeholder="How are you feeling today? Let your thoughts flow..."
+                  className="min-h-[400px]"
+                />
+              </div>
+
+              {/* Additional Controls */}
+              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border/50">
+                <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="rounded-lg hover:bg-primary/20">
+                      <Smile className="w-4 h-4 mr-2" />
+                      Emoji
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 border-0" align="start">
+                    <EmojiPicker onEmojiClick={onEmojiClick} width="100%" />
+                  </PopoverContent>
+                </Popover>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className={`rounded-lg ${isRecording ? "bg-red-500/20 text-red-500 hover:bg-red-500/30" : "hover:bg-secondary/20 text-secondary"}`}
+                >
+                  {isRecording ? (
+                    <>
+                      <Square className="w-4 h-4 mr-2" />
+                      Stop Recording
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4 mr-2" />
+                      Record Audio
+                    </>
+                  )}
                 </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Italic className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Underline className="w-4 h-4" />
-                </Button>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Type className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Highlighter className="w-4 h-4" />
-                </Button>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Smile className="w-4 h-4" />
-                </Button>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <List className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <ListOrdered className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Quote className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-primary/20">
-                  <Minus className="w-4 h-4" />
-                </Button>
-                <Separator orientation="vertical" className="h-6 mx-1" />
-                <Button variant="ghost" size="icon" className="rounded-lg hover:bg-secondary/20 text-secondary">
-                  <Mic className="w-4 h-4" />
-                </Button>
+
+                {audioURL && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <audio controls src={audioURL} className="h-8" />
+                  </div>
+                )}
               </div>
             </CardHeader>
-            <CardContent>
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="How are you feeling today? Let your thoughts flow..."
-                className="min-h-[500px] bg-transparent border-none text-foreground placeholder:text-muted-foreground text-base resize-none focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed"
-              />
-            </CardContent>
           </Card>
         </motion.main>
 

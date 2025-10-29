@@ -111,3 +111,76 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* React Quill Custom Styles */
+.journal-editor .ql-container {
+  @apply border-none bg-transparent min-h-[400px];
+}
+
+.journal-editor .ql-editor {
+  @apply text-foreground text-base leading-relaxed min-h-[400px] p-4;
+}
+
+.journal-editor .ql-editor.ql-blank::before {
+  @apply text-muted-foreground italic;
+}
+
+.journal-editor .ql-toolbar {
+  @apply border-none bg-transparent rounded-t-xl p-2;
+}
+
+.journal-editor .ql-stroke {
+  @apply stroke-foreground;
+}
+
+.journal-editor .ql-fill {
+  @apply fill-foreground;
+}
+
+.journal-editor .ql-picker-label {
+  @apply text-foreground;
+}
+
+.journal-editor .ql-toolbar button:hover,
+.journal-editor .ql-toolbar button.ql-active {
+  @apply bg-primary/20 rounded-lg;
+}
+
+.journal-editor .ql-toolbar .ql-stroke {
+  @apply stroke-foreground;
+}
+
+.journal-editor .ql-toolbar .ql-fill {
+  @apply fill-foreground;
+}
+
+.journal-editor .ql-toolbar button:hover .ql-stroke,
+.journal-editor .ql-toolbar button.ql-active .ql-stroke {
+  @apply stroke-primary;
+}
+
+.journal-editor .ql-toolbar button:hover .ql-fill,
+.journal-editor .ql-toolbar button.ql-active .ql-fill {
+  @apply fill-primary;
+}
+
+.journal-editor .ql-picker {
+  @apply text-foreground;
+}
+
+.journal-editor .ql-picker-options {
+  @apply bg-card border-border;
+}
+
+/* Dark mode adjustments */
+.dark .journal-editor .ql-editor {
+  @apply text-foreground;
+}
+
+.dark .journal-editor .ql-stroke {
+  @apply stroke-foreground;
+}
+
+.dark .journal-editor .ql-fill {
+  @apply fill-foreground;
+}
